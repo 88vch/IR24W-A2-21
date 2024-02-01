@@ -1,0 +1,44 @@
+extract_next_links
+-------------------
+First we need to check resp.status code, 200 is OK anything else
+means there was a problem.
+
+Use BeautifulSoup and lxml to parse url contents
+import using "from bs4 import BeautifulSoup"
+"soup = BeautifulSoup(resp.raw_response.content, "lxml")"
+We can use a for loop "for link in soup.find_all('a')"
+and then "link.get('href')" to get each hyperlink in the url
+we need to use "is_valid()" to determine if link is valid domain
+if valid link then we need to defragment it
+using EX: from assignment "https://www.ics.uci.edu#aaa"
+and "https://www.ics.uci.edu#bbb" become "https://www.ics.edu"
+Remove everything after # using split
+
+we can use "soup.get_text()" to retrieve all text in a page
+then we can use our tokenize function to tokenize the text
+-----------------------
+
+is_valid
+-----------------------
+We need to check domain so check if any of the following domains:
+".ics.uci.edu/"
+".cs.uci.edu/"
+".informatics.uci.edu/"
+".stat.uci.edu/"
+if link doesnt contain any of these domains the link is not valid
+
+Likely other checks than domain to determine valid link
+-------------------------
+
+How to honor politeness via robots.txt
+-------------------------
+import urllib.robotparser as robot
+rp = robot.RobotFileParser() - creates an instance of robot parser
+rp.set_url("https://www.example.com/robots.txt")   - set the url for the robot parser
+rp.read() - reads the robots.txt URL
+rp.can_fetch("*", "https://www.example.com/..." - will return true/false if the crawler is allowed to crawl the specified url/folder
+-------------------------
+
+How to detect and avoid infinite traps
+---------------------------
+...
