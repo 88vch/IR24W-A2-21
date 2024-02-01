@@ -1,5 +1,6 @@
 import re
 from urllib.parse import urlparse
+from bs4 import BeautifulSoup
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
@@ -15,7 +16,14 @@ def extract_next_links(url, resp):
     #         resp.raw_response.url: the url, again
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
-    return list()
+    soup = BeautifulSoup(url, "lxml")
+    retList = []
+    for link in soup.find_all('a'):
+        cleaned_link = re.match(r'^(.*?)(?:#.*)?$', link)
+        cleaned_link = cleaned_link.group(1)
+        if cleaned_link not in retList:
+            retList.append(cleaned_link)
+    return retList
 
 def is_valid(url):
     # Decide whether to crawl this url or not. 
@@ -24,6 +32,8 @@ def is_valid(url):
     try:
         parsed = urlparse(url)
         if parsed.scheme not in set(["http", "https"]):
+            return False
+        if parsed.hostname not in set([".ics.uci.edu", ".cs.uci.edu", ".informatics.uci.edu", ".stat.uci.edu"]):
             return False
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
