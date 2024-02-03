@@ -1,24 +1,31 @@
 import re
+from itertools import islice
 from urllib.parse import urlparse
 import sys
 from bs4 import BeautifulSoup
 import nltk
 from nltk.corpus import stopwords
 import requests
+import urllib.robotparser as robot
 
 # Global variables to keep track of stats for the report
+# unique_list is a list that will keep track of all unique pages encountered throughout the crawl
 #
 # running_dict is a running dictionary of all of the tokenized words and their frequencies. We will count the top 50 words.
 # We still need to exclude stopwords
 #
 # max_word_count is the count of the webpage with the highest amount of words
 #
+# max_word_url holds the url of the longest page in terms of the number of words
+#
 # sub_domain_dict is a dictionary that contains the subdomains of the ics.uci.edu domain. The keys are the subdomains of ics.uci.edu
 # and the values are the amount of unique pages on each subdomain
 #
 # stopwords_set is a set of stopwords to be excluded from our running_dict. Still needs to be utilized
+unique_list = list()
 running_dict = dict()
 max_word_count = 0
+max_word_url = str()
 sub_domain_dict = dict()
 nltk.download('stopwords')
 stopwords_set = stopwords.words('english')
@@ -58,7 +65,7 @@ def download_webpage(url):
         
         # Check if the request was successful (status code 200)
         if response.status_code == 200:
-            # Print the content or save it to a file
+            # Return the response, not the text
             return response.text
             
             # If you want to save the content to a file
@@ -89,6 +96,23 @@ def extract_next_links(url, resp):
     global running_dict
     global max_word_count
     global sub_domain_dict
+    global unique_list
+    global max_word_url
+
+    # Return if resp.status is 204 (No Content) or >= 400 (Bad Request)
+    # if resp.status_code == 204 or resp.status_code >= 400:
+        # return list()
+
+    # Ensure we are being polite by reading a webpage's robots.txt
+    rp = robot.RobotFileParser()
+    roboturl = url + "/robots.txt"
+    rp.set_url(roboturl)
+    rp.read()
+    crawlable = rp.can_fetch("*", roboturl)
+
+    # if robots.txt doesn't allow us to crawl we will honor it
+    if not crawlable:
+        return list()
 
     # Downloads webpage with BeautifulSoup
     soup = BeautifulSoup(resp, "lxml")
@@ -105,7 +129,12 @@ def extract_next_links(url, resp):
                 link = url + link
             # Defragments the url
             split_link = link.split('#')
-            retList.append(split_link[0])
+            add_url = split_link[0]
+            if is_valid(add_url):
+                retList.append(add_url)
+                # if we have not encountered this page before we will add it to the unique list
+                if add_url not in unique_list:
+                    unique_list.append(add_url)
     # Tokenize content of current webpage
     # All words stored in list, non-unique
     # Will be repeating words in list
@@ -115,9 +144,10 @@ def extract_next_links(url, resp):
     # If number of words greater than max, update max
     if len(word_list) > max_word_count:
         max_word_count = len(word_list)
+        max_word_url = url
 
     # Checks each word in word_list
-    # Updates runnding_dict
+    # Updates running_dict
     for word in word_list:
         if word not in stopwords_set:
             if word in running_dict:
@@ -159,14 +189,24 @@ def is_valid(url):
         print ("TypeError for ", parsed)
         raise
 
+# Temp code for testing singular scrapes locally
 if __name__ == '__main__':
     x = download_webpage('http://vision.ics.uci.edu')
     y = scraper('http://vision.ics.uci.edu', x)
-    print(running_dict)
-    print(max_word_count)
-    print(sub_domain_dict)
+    sorted_running_dict = dict(sorted(running_dict.items(), key=lambda x: x[0], reverse=False))
+    sorted_running_dict = dict(sorted(sorted_running_dict.items(), key=lambda value: value[1], reverse=True))
+    temp = list(islice(sorted_running_dict, 50))
+    print("\nHow many unique pages did you find: ", unique_list)
+    print("\n50 most common words in the entire set of pages: ", temp)
+    print("\nLongest page in terms of the # of words:", max_word_url, "with", max_word_count, "words")
+    print("\nSubdomains found in the ics.uci.edu domain: ", sub_domain_dict)
+
     b = download_webpage('https://ics.uci.edu')
     a = extract_next_links('https://ics.uci.edu', b)
-    print(running_dict)
-    print(max_word_count)
-    print(sub_domain_dict)
+    sorted_running_dict = dict(sorted(running_dict.items(), key=lambda x: x[0], reverse=False))
+    sorted_running_dict = dict(sorted(sorted_running_dict.items(), key=lambda value: value[1], reverse=True))
+    temp = list(islice(sorted_running_dict, 50))
+    print("\nHow many unique pages did you find: ", unique_list)
+    print("\n50 most common words in the entire set of pages: ", temp)
+    print("\nLongest page in terms of the # of words:", max_word_url, "with", max_word_count, "words")
+    print("\nSubdomains found in the ics.uci.edu domain: ", sub_domain_dict)
