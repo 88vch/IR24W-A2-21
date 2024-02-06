@@ -1,11 +1,8 @@
 import re
-from itertools import islice
 from urllib.parse import urlparse
-import sys
 from bs4 import BeautifulSoup
 import nltk
 from nltk.corpus import stopwords
-import requests
 import urllib.robotparser as robot
 
 # Global variables to keep track of stats for the report
@@ -55,33 +52,9 @@ def tokenize(page_text: str):
     if new_word != "":
         token_list.append(new_word)
     return token_list
-
-
-# Test function to download a webpage
-# Returns content of webpage as a string
-def download_webpage(url):
-    try:
-        # Send a GET request to the URL
-        response = requests.get(url)
-
-        # Check if the request was successful (status code 200)
-        if response.status_code == 200:
-            # Return the response, not the text
-            return response.text
-
-            # If you want to save the content to a file
-            # with open("webpage_content.html", "w", encoding="utf-8") as file:
-            #     file.write(response.text)
-        else:
-            print(f"Failed to retrieve content. Status code: {response.status_code}")
-    except Exception as e:
-        print(f"An error occurred: {e}")
-
-
 def scraper(url, resp):
     links = extract_next_links(url, resp)
     return [link for link in links if is_valid(link)]
-
 
 def extract_next_links(url, resp):
     # Implementation required.
