@@ -75,7 +75,7 @@ def extract_next_links(url, resp):
     global max_word_url
 
     # Return if resp.status is 204 (No Content) or >= 400 (Bad Request)
-    if resp.status_code == 204 or resp.status_code >= 400:
+    if resp.status == 204 or resp.status >= 400:
         return list()
 
     # Ensure we are being polite by reading a webpage's robots.txt
