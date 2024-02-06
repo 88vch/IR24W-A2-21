@@ -95,6 +95,7 @@ def extract_next_links(url, resp):
     links = soup.find_all('a')
     for link in links:
         link = link.get('href')
+        temp = link
         # href is most of the time the suffix of a link ex. "/index.html"
         # we check if href does not return a full link and if it does not, we append the href
         # to the current url
@@ -105,10 +106,13 @@ def extract_next_links(url, resp):
             split_link = link.split('#')
             add_url = split_link[0]
             if is_valid(add_url):
-                retList.append(add_url)
-                # if we have not encountered this page before we will add it to the unique list
-                if add_url not in unique_list:
-                    unique_list.append(add_url)
+                # temp code to test duplicate directory ex: "/example/example..."
+                linkparts = temp.split('/')
+                if len(set(linkparts[3:-1])) != len(linkparts[3:-1]):
+                    retList.append(add_url)
+                    # if we have not encountered this page before we will add it to the unique list
+                    if add_url not in unique_list:
+                        unique_list.append(add_url)
     # Tokenize content of current webpage
     # All words stored in list, non-unique
     # Will be repeating words in list
