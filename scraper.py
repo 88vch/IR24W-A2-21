@@ -30,6 +30,7 @@ sub_domain_dict = dict()
 nltk.download('stopwords')
 stopwords_set = stopwords.words('english')
 
+
 # Modified to take in a webpage in the form of text/string
 def tokenize(page_text: str):
     """
@@ -62,12 +63,12 @@ def download_webpage(url):
     try:
         # Send a GET request to the URL
         response = requests.get(url)
-        
+
         # Check if the request was successful (status code 200)
         if response.status_code == 200:
             # Return the response, not the text
             return response.text
-            
+
             # If you want to save the content to a file
             # with open("webpage_content.html", "w", encoding="utf-8") as file:
             #     file.write(response.text)
@@ -80,6 +81,7 @@ def download_webpage(url):
 def scraper(url, resp):
     links = extract_next_links(url, resp)
     return [link for link in links if is_valid(link)]
+
 
 def extract_next_links(url, resp):
     # Implementation required.
@@ -100,22 +102,21 @@ def extract_next_links(url, resp):
     global max_word_url
 
     # Return if resp.status is 204 (No Content) or >= 400 (Bad Request)
-    # if resp.status_code == 204 or resp.status_code >= 400:
-        # return list()
-
-    # Ensure we are being polite by reading a webpage's robots.txt
-    rp = robot.RobotFileParser()
-    roboturl = url + "/robots.txt"
-    rp.set_url(roboturl)
-    rp.read()
-    crawlable = rp.can_fetch("*", roboturl)
-
-    # if robots.txt doesn't allow us to crawl we will honor it
-    if not crawlable:
+    if resp.status_code == 204 or resp.status_code >= 400:
         return list()
 
+    # Ensure we are being polite by reading a webpage's robots.txt
+    # rp = robot.RobotFileParser()
+    # roboturl = url + "/robots.txt"
+    # rp.set_url(roboturl)
+    # rp.read()
+    # crawlable = rp.can_fetch("*", roboturl)
+
+    # if robots.txt doesn't allow us to crawl we will honor it
+    # if not crawlable:
+    # return list()
     # Downloads webpage with BeautifulSoup
-    soup = BeautifulSoup(resp, "lxml")
+    soup = BeautifulSoup(resp.raw_response.content, "lxml")
     retList = []
     # Gets links from current webpage as listed in HTML
     links = soup.find_all('a')
@@ -162,6 +163,7 @@ def extract_next_links(url, resp):
 
     return retList
 
+
 def is_valid(url):
     # Decide whether to crawl this url or not. 
     # If you decide to crawl it, return True; otherwise return False.
@@ -186,27 +188,19 @@ def is_valid(url):
             + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower())
 
     except TypeError:
-        print ("TypeError for ", parsed)
+        print("TypeError for ", parsed)
         raise
 
 # Temp code for testing singular scrapes locally
-if __name__ == '__main__':
-    x = download_webpage('http://vision.ics.uci.edu')
-    y = scraper('http://vision.ics.uci.edu', x)
-    sorted_running_dict = dict(sorted(running_dict.items(), key=lambda x: x[0], reverse=False))
-    sorted_running_dict = dict(sorted(sorted_running_dict.items(), key=lambda value: value[1], reverse=True))
-    temp = list(islice(sorted_running_dict, 50))
-    print("\nHow many unique pages did you find: ", unique_list)
-    print("\n50 most common words in the entire set of pages: ", temp)
-    print("\nLongest page in terms of the # of words:", max_word_url, "with", max_word_count, "words")
-    print("\nSubdomains found in the ics.uci.edu domain: ", sub_domain_dict)
-
-    b = download_webpage('https://ics.uci.edu')
-    a = extract_next_links('https://ics.uci.edu', b)
-    sorted_running_dict = dict(sorted(running_dict.items(), key=lambda x: x[0], reverse=False))
-    sorted_running_dict = dict(sorted(sorted_running_dict.items(), key=lambda value: value[1], reverse=True))
-    temp = list(islice(sorted_running_dict, 50))
-    print("\nHow many unique pages did you find: ", unique_list)
-    print("\n50 most common words in the entire set of pages: ", temp)
-    print("\nLongest page in terms of the # of words:", max_word_url, "with", max_word_count, "words")
-    print("\nSubdomains found in the ics.uci.edu domain: ", sub_domain_dict)
+# if __name__ == '__main__':
+# x = download_webpage('http://vision.ics.uci.edu')
+# y = scraper('http://vision.ics.uci.edu', x)
+# b = download_webpage('https://ics.uci.edu')
+# a = extract_next_links('https://ics.uci.edu', b)
+# sorted_running_dict = dict(sorted(running_dict.items(), key=lambda x: x[0], reverse=False))
+# sorted_running_dict = dict(sorted(sorted_running_dict.items(), key=lambda value: value[1], reverse=True))
+# temp = list(islice(sorted_running_dict, 50))
+# print("\nHow many unique pages did you find: ", unique_list)
+# print("\n50 most common words in the entire set of pages: ", temp)
+# print("\nLongest page in terms of the # of words:", max_word_url, "with", max_word_count, "words")
+# print("\nSubdomains found in the ics.uci.edu domain: ", sub_domain_dict)

@@ -1,3 +1,4 @@
+from itertools import islice
 from threading import Thread
 
 from inspect import getsource
@@ -18,6 +19,12 @@ class Worker(Thread):
         super().__init__(daemon=True)
         
     def run(self):
+        global running_dict
+        global max_word_count
+        global sub_domain_dict
+        global unique_list
+        global max_word_url
+
         while True:
             tbd_url = self.frontier.get_tbd_url()
             if not tbd_url:
@@ -32,6 +39,11 @@ class Worker(Thread):
                 self.frontier.add_url(scraped_url)
             self.frontier.mark_url_complete(tbd_url)
             time.sleep(self.config.time_delay)
-        print(scraper.running_dict)
-        print(scraper.max_word_count)
+        sorted_running_dict = dict(sorted(running_dict.items(), key=lambda x: x[0], reverse=False))
+        sorted_running_dict = dict(sorted(sorted_running_dict.items(), key=lambda value: value[1], reverse=True))
+        temp = list(islice(sorted_running_dict, 50))
+        print("\nHow many unique pages did you find: ", unique_list)
+        print("\n50 most common words in the entire set of pages: ", temp)
+        print("\nLongest page in terms of the # of words:", max_word_url, "with", max_word_count, "words")
+        print("\nSubdomains found in the ics.uci.edu domain: ", sub_domain_dict)
         
