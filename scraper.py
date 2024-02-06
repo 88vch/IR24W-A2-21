@@ -105,13 +105,10 @@ def extract_next_links(url, resp):
             split_link = link.split('#')
             add_url = split_link[0]
             if is_valid(add_url):
-                # temp code to test duplicate directory ex: "/example/example..."
-                linkparts = link.split('/')
-                if linkparts[3:-1] != linkparts[4:-1]:
-                    retList.append(add_url)
-                    # if we have not encountered this page before we will add it to the unique list
-                    if add_url not in unique_list:
-                        unique_list.append(add_url)
+                retList.append(add_url)
+                # if we have not encountered this page before we will add it to the unique list
+                if add_url not in unique_list:
+                    unique_list.append(add_url)
     # Tokenize content of current webpage
     # All words stored in list, non-unique
     # Will be repeating words in list
