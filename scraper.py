@@ -108,7 +108,7 @@ def extract_next_links(url, resp):
             if is_valid(add_url):
                 # temp code to test duplicate directory ex: "/example/example..."
                 linkparts = temp.split('/')
-                if len(set(linkparts[3:-1])) != len(linkparts[3:-1]):
+                if linkparts[3:-1] != linkparts[4:-1]:
                     retList.append(add_url)
                     # if we have not encountered this page before we will add it to the unique list
                     if add_url not in unique_list:
