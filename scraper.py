@@ -95,13 +95,12 @@ def extract_next_links(url, resp):
     links = soup.find_all('a')
     for link in links:
         link = link.get('href')
-        print(link)
         # href is most of the time the suffix of a link ex. "/index.html"
         # we check if href does not return a full link and if it does not, we append the href
         # to the current url
         if not link == None:
-            if not link.startswith('http'):
-                link = url + link
+            # if not link.startswith('http'):
+                # link = url + link
             # Defragments the url
             split_link = link.split('#')
             add_url = split_link[0]
