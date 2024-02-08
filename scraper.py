@@ -89,7 +89,10 @@ def extract_next_links(url, resp):
     # if not crawlable:
     # return list()
     # Downloads webpage with BeautifulSoup
-    soup = BeautifulSoup(resp.raw_response.content, "lxml")
+    try: 
+        soup = BeautifulSoup(resp.raw_response.content, "lxml")
+    except:
+        soup = BeautifulSoup(resp.raw_response.content, "utf-8")
     retList = []
     # Gets links from current webpage as listed in HTML
     links = soup.find_all('a')
