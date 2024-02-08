@@ -112,7 +112,9 @@ def extract_next_links(url, resp):
     # Tokenize content of current webpage
     # All words stored in list, non-unique
     # Will be repeating words in list
-    word_list = tokenize(soup.get_text())
+    word_list = []
+    if len(soup.get_text()) != 0:
+        word_list = tokenize(soup.get_text())
 
     # Checks number of words on webpage
     # If number of words greater than max, update max
