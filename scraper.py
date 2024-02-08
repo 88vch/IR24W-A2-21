@@ -146,7 +146,7 @@ def is_valid(url):
     try:
         parsed = urlparse(url)
         # check if url contains "pdf"
-        for extension in {".pdf", ".zip", ".gz", ".css", ".ps", ".ppt", ".js"}:
+        for extension in {"pdf", ".zip", ".gz", ".css", ".ps", ".ppt", ".js", ".bib"}:
             if extension in url:
                 return False
         if parsed.scheme not in set(["http", "https"]):
