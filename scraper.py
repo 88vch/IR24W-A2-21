@@ -144,6 +144,9 @@ def is_valid(url):
     # If you decide to crawl it, return True; otherwise return False.
     # There are already some conditions that return False.
     try:
+        # check if url contains "pdf"
+        if {".pdf", ".zip", ".gz", ".css", ".ps", ".ppt", ".js"} in url:
+            return False
         parsed = urlparse(url)
         if parsed.scheme not in set(["http", "https"]):
             return False
