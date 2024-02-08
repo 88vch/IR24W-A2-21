@@ -162,7 +162,7 @@ def is_valid(url):
         if parsed.query is not None and "share=" in parsed.query:
             return False
         # Gets rid of calendar event paths by checking path
-        if "event" in parsed.path:
+        if "event" or "=login" or "=edit" in parsed.path:
             return False
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
