@@ -159,12 +159,14 @@ def is_valid(url):
             filtered_hostname = parsed.hostname.split('.', 1)[1]
         if filtered_hostname not in set(["ics.uci.edu", "cs.uci.edu", "informatics.uci.edu", "stat.uci.edu"]):
             return False
-        # Gets rid of "share=" urls
-        if parsed.query is not None and "share=" in parsed.query:
-            return False
+        if parsed.query is not None:
+            # Gets rid of "share=" urls, Gets rid of "action=" urls (ex. login, forgot password, etc..)
+            if ("share=" in parsed.query) or ("action=" in parsed.query):
+                return False
         # Gets rid of calendar event paths by checking path
-        if "event" or "=login" or "=edit" in parsed.path:
+        if "event" in parsed.path:
             return False
+            
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
