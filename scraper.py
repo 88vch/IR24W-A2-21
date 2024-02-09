@@ -158,6 +158,7 @@ def is_valid(url):
         if "event" in parsed.path:
             return False
 
+        print(url)
         # Deal with page traps for example .../page/200 we handle this by setting max page # as 5
         if "page/" in parsed.path:
             splitparse = parsed.path.split("/")
