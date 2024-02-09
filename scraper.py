@@ -157,7 +157,14 @@ def is_valid(url):
         # Gets rid of calendar event paths by checking path
         if "event" in parsed.path:
             return False
-            
+
+        # Deal with page traps for example .../page/200 we handle this by setting max page # as 5 
+        if "page/" in parsed.path:
+            splitparse = parsed.path.split("/")
+            pagenum = int(splitparse[len(splitparse) - 1])
+            if pagenum <= 5:
+                return False
+
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
@@ -173,16 +180,3 @@ def is_valid(url):
         print("TypeError for ", parsed)
         raise
 
-# Temp code for testing singular scrapes locally
-# if __name__ == '__main__':
-# x = download_webpage('http://vision.ics.uci.edu')
-# y = scraper('http://vision.ics.uci.edu', x)
-# b = download_webpage('https://ics.uci.edu')
-# a = extract_next_links('https://ics.uci.edu', b)
-# sorted_running_dict = dict(sorted(running_dict.items(), key=lambda x: x[0], reverse=False))
-# sorted_running_dict = dict(sorted(sorted_running_dict.items(), key=lambda value: value[1], reverse=True))
-# temp = list(islice(sorted_running_dict, 50))
-# print("\nHow many unique pages did you find: ", unique_list)
-# print("\n50 most common words in the entire set of pages: ", temp)
-# print("\nLongest page in terms of the # of words:", max_word_url, "with", max_word_count, "words")
-# print("\nSubdomains found in the ics.uci.edu domain: ", sub_domain_dict)
