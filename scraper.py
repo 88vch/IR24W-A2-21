@@ -78,16 +78,6 @@ def extract_next_links(url, resp):
     if resp.status == 204 or resp.status >= 400:
         return list()
 
-    # Ensure we are being polite by reading a webpage's robots.txt
-    # rp = robot.RobotFileParser()
-    # roboturl = url + "/robots.txt"
-    # rp.set_url(roboturl)
-    # rp.read()
-    # crawlable = rp.can_fetch("*", roboturl)
-
-    # if robots.txt doesn't allow us to crawl we will honor it
-    # if not crawlable:
-    # return list()
     # Downloads webpage with BeautifulSoup
     try: 
         soup = BeautifulSoup(resp.raw_response.content, "lxml")
@@ -102,8 +92,6 @@ def extract_next_links(url, resp):
         # we check if href does not return a full link and if it does not, we append the href
         # to the current url
         if not link == None:
-            # if not link.startswith('http'):
-                # link = url + link
             # Defragments the url
             split_link = link.split('#')
             add_url = split_link[0]
@@ -149,7 +137,7 @@ def is_valid(url):
     try:
         parsed = urlparse(url)
         # check if url contains "pdf"
-        for extension in {"pdf", ".zip", ".gz", ".css", ".ps", ".ppt", ".js", ".bib", ".r"}:
+        for extension in {"pdf", ".zip", ".gz", ".css", ".ps", ".ppt", ".js", ".bib", ".ppsx", ".txt"}:
             if extension in url:
                 return False
         if parsed.scheme not in set(["http", "https"]):
@@ -169,7 +157,15 @@ def is_valid(url):
         # Gets rid of calendar event paths by checking path
         if "event" in parsed.path:
             return False
-            
+
+        # Deal with page traps for example .../page/200 we handle this by setting max page # as 5
+        if "page/" in parsed.path:
+            splitparse = parsed.path.split("/")
+            if splitparse[len(splitparse) - 1] != '':
+                pagenum = int(splitparse[len(splitparse) - 1])
+                if pagenum <= 5:
+                    return False
+
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
@@ -185,16 +181,3 @@ def is_valid(url):
         print("TypeError for ", parsed)
         raise
 
-# Temp code for testing singular scrapes locally
-# if __name__ == '__main__':
-# x = download_webpage('http://vision.ics.uci.edu')
-# y = scraper('http://vision.ics.uci.edu', x)
-# b = download_webpage('https://ics.uci.edu')
-# a = extract_next_links('https://ics.uci.edu', b)
-# sorted_running_dict = dict(sorted(running_dict.items(), key=lambda x: x[0], reverse=False))
-# sorted_running_dict = dict(sorted(sorted_running_dict.items(), key=lambda value: value[1], reverse=True))
-# temp = list(islice(sorted_running_dict, 50))
-# print("\nHow many unique pages did you find: ", unique_list)
-# print("\n50 most common words in the entire set of pages: ", temp)
-# print("\nLongest page in terms of the # of words:", max_word_url, "with", max_word_count, "words")
-# print("\nSubdomains found in the ics.uci.edu domain: ", sub_domain_dict)
