@@ -78,16 +78,6 @@ def extract_next_links(url, resp):
     if resp.status == 204 or resp.status >= 400:
         return list()
 
-    # Ensure we are being polite by reading a webpage's robots.txt
-    # rp = robot.RobotFileParser()
-    # roboturl = url + "/robots.txt"
-    # rp.set_url(roboturl)
-    # rp.read()
-    # crawlable = rp.can_fetch("*", roboturl)
-
-    # if robots.txt doesn't allow us to crawl we will honor it
-    # if not crawlable:
-    # return list()
     # Downloads webpage with BeautifulSoup
     try: 
         soup = BeautifulSoup(resp.raw_response.content, "lxml")
@@ -102,8 +92,6 @@ def extract_next_links(url, resp):
         # we check if href does not return a full link and if it does not, we append the href
         # to the current url
         if not link == None:
-            # if not link.startswith('http'):
-                # link = url + link
             # Defragments the url
             split_link = link.split('#')
             add_url = split_link[0]
