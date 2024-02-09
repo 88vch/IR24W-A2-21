@@ -158,12 +158,13 @@ def is_valid(url):
         if "event" in parsed.path:
             return False
 
-        # Deal with page traps for example .../page/200 we handle this by setting max page # as 5 
+        # Deal with page traps for example .../page/200 we handle this by setting max page # as 5
         if "page/" in parsed.path:
             splitparse = parsed.path.split("/")
-            pagenum = int(splitparse[len(splitparse) - 1])
-            if pagenum <= 5:
-                return False
+            if splitparse[len(splitparse) - 1] is not None:
+                pagenum = int(splitparse[len(splitparse) - 1])
+                if pagenum <= 5:
+                    return False
 
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
