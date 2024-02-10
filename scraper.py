@@ -160,6 +160,7 @@ def is_valid(url):
 
         # Deal with page traps for example .../page/200 we handle this by setting max page # as 5
         if "page/" in parsed.path:
+            print(parsed.path)
             splitparse = parsed.path.split("/")[-2:]
             pagenum = int(splitparse[1])
             if pagenum <= 5:
