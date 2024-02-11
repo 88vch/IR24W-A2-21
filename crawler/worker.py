@@ -40,7 +40,7 @@ class Worker(Thread):
                 currentDomain = self.getDomain(tbd_url) #get the domain of the url
                 if currentDomain is not None:
                     Worker.shared_dict[currentDomain] += 1
-                    if Worker.shared_dict[currentDomain] >= 2:
+                    if Worker.shared_dict[currentDomain] >= 3:
                         time.sleep(self.config.time_delay) #sleep
                 resp = download(tbd_url, self.config, self.logger)
             self.logger.info(

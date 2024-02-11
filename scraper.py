@@ -4,6 +4,8 @@ from bs4 import BeautifulSoup
 import nltk
 from nltk.corpus import stopwords
 import urllib.robotparser as robot
+from collections import defaultdict
+import hashlib
 
 # Global variables to keep track of stats for the report
 # unique_list is a list that will keep track of all unique pages encountered throughout the crawl
@@ -27,6 +29,7 @@ sub_domain_dict = dict()
 nltk.download('stopwords')
 stopwords_set = stopwords.words('english')
 checksum_dict = dict()
+simhash_dict = dict()
 
 # Modified to take in a webpage in the form of text/string
 def tokenize(page_text: str):
@@ -210,9 +213,34 @@ def isExactSimilarity(url, page_text: str):
         checksum += byte
     if checksum in checksum_dict:
         return True #there is an exact similarity
-    checksum_dict[checksum] = True
+    checksum_dict[checksum] = url
     return False
     
-def nearSimilarityDetection():
+def nearSimilarityDetection(tokens): #takes in the result of tokenize
     #simhash
-    pass
+    token_dict = defaultdict(int) #words with weights
+    for token in tokens:
+        token_dict[token] += 1    
+    token_dict2 = defaultdict(str)
+    #8 bit hashing
+    for token in token_dict.keys():
+        hash_value = hashlib.md5(token.encode('utf-8')).digest()
+        token_dict2[token] = hash_value[0] #dict of hash_values
+    #get the vector V formed by summing weights
+    fingerprint = ""
+    for token in token_dict.keys():
+        weight_sum = 0
+        for i in range(len(token_dict2[token])):
+            if (token_dict2[token][i]) == 1:
+                weight_sum -= token_dict[token]
+            else:
+                weight_sum += token_dict[token]
+        if weight_sum > 0:
+            fingerprint += "1"
+        else:
+            fingerprint += "0"
+    if fingerprint in simhash_dict:
+        return True #there is a near duplicate
+    simhash_dict[fingerprint] = url
+    return False
+    
