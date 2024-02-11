@@ -124,6 +124,8 @@ def extract_next_links(url, resp):
 
     # Checks that the current url is a subdomain of ics.uci.edu
     # If it is, make an entry in the sub_domain_dict with the number of links on the sub_domain
+    if url.endswith('ics.uci.edu'):
+        sub_domain_dict[url] = len(retList)
     parsed = urlparse(url)
     if ".ics.uci.edu" in parsed.hostname:
         subdomain = parsed.hostname.split(".")[0]
@@ -133,7 +135,6 @@ def extract_next_links(url, resp):
             sub_domain_dict[fullsubdomain] = 1
         else:
             sub_domain_dict[fullsubdomain] = sub_domain_dict[fullsubdomain] + 1
-
     return retList
 
 
@@ -193,7 +194,7 @@ def is_valid(url):
 
 def robots_checkage(domain):
     #function that checks robots.txt at root
-    
+
     pass
 
 def exactSimilarityDetection():
