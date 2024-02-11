@@ -27,7 +27,6 @@ sub_domain_dict = dict()
 nltk.download('stopwords')
 stopwords_set = stopwords.words('english')
 
-
 # Modified to take in a webpage in the form of text/string
 def tokenize(page_text: str):
     """
@@ -52,6 +51,7 @@ def tokenize(page_text: str):
     if new_word != "":
         token_list.append(new_word)
     return token_list
+
 def scraper(url, resp):
     links = extract_next_links(url, resp)
     return [link for link in links if is_valid(link)]
@@ -190,3 +190,13 @@ def is_valid(url):
         print("TypeError for ", parsed)
         raise
 
+
+def robots_checkage(domain):
+    #function that checks robots.txt at root
+    
+    pass
+
+def exactSimilarityDetection():
+    pass
+def nearSimilarityDetection():
+    pass
