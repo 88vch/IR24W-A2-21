@@ -61,8 +61,9 @@ class Worker(Thread):
         sorted_running_dict = dict(sorted(scraper.running_dict.items(), key=lambda x: x[0], reverse=False))
         sorted_running_dict = dict(sorted(sorted_running_dict.items(), key=lambda value: value[1], reverse=True))
         temp = list(islice(sorted_running_dict, 50))
-        print("\nHow many unique pages did you find: ", scraper.unique_list)
+        print("\nHow many unique pages did you find: ", len(scraper.unique_list))
         print("\n50 most common words in the entire set of pages: ", temp)
         print("\nLongest page in terms of the # of words:", scraper.max_word_url, "with", scraper.max_word_count, "words")
-        print("\nSubdomains found in the ics.uci.edu domain: ", scraper.sub_domain_dict)
+        sorted_sub_domain_dict = dict(sorted(scraper.sub_domain_dict.items(), key=lambda x: x[0], reverse=False))
+        print("\nSubdomains found in the ics.uci.edu domain: ", sorted_sub_domain_dict)
         
