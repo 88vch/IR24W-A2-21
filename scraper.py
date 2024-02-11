@@ -26,6 +26,7 @@ max_word_url = str()
 sub_domain_dict = dict()
 nltk.download('stopwords')
 stopwords_set = stopwords.words('english')
+checksum_dict = dict()
 
 # Modified to take in a webpage in the form of text/string
 def tokenize(page_text: str):
@@ -192,12 +193,26 @@ def is_valid(url):
         raise
 
 
-def robots_checkage(domain):
+def robots_checkage(domain, url):
     #function that checks robots.txt at root
+    rp = robot()
+    robots_url = f'https://{domain}/robots.txt'
+    rp.set_url(robots_url)
+    rp.read()
+    return rp.can_fetch('*', url) #returns true if robot allowed on the page, false otherwise
 
-    pass
 
-def exactSimilarityDetection():
-    pass
+def isExactSimilarity(url, page_text: str):
+    #with checksum
+    checksum = 0
+    page_bytes = page_text.encode('utf-8')
+    for byte in page_bytes:
+        checksum += byte
+    if checksum in checksum_dict:
+        return True #there is an exact similarity
+    checksum_dict[checksum] = True
+    return False
+    
 def nearSimilarityDetection():
+    #simhash
     pass
