@@ -1,5 +1,5 @@
 from itertools import islice
-from threading import Thread, RLock
+from threading import Thread, RLock, Semaphore
 from collections import defaultdict
 from inspect import getsource
 from utils.download import download
@@ -12,6 +12,7 @@ from urllib.parse import urlparse
 class Worker(Thread):
     shared_dict = defaultdict(int)
     shared_lock = RLock()
+    shared_semaphores = defaultdict(Semaphore)
     def __init__(self, worker_id, config, frontier):
         self.logger = get_logger(f"Worker-{worker_id}", "Worker")
         self.config = config
@@ -36,12 +37,16 @@ class Worker(Thread):
             if not tbd_url:
                 self.logger.info("Frontier is empty. Stopping Crawler.")
                 break
-            with Worker.shared_lock:
-                currentDomain = self.getDomain(tbd_url) #get the domain of the url
-                if currentDomain is not None:
-                    Worker.shared_dict[currentDomain] += 1
-                    if Worker.shared_dict[currentDomain] >= 3:
-                        time.sleep(self.config.time_delay) #sleep
+            currentDomain = self.getDomain(tbd_url)
+            if currentDomain is not None:
+                self.shared_semaphores[currentDomain].acquire()
+                try:
+                    with Worker.shared_lock:
+                        Worker.shared_dict[currentDomain] += 1
+                        if Worker.shared_dict[currentDomain] > 2:
+                            time.sleep(self.config.time_delay)
+                finally:
+                    self.shared_semaphores[currentDomain].release()
                 resp = download(tbd_url, self.config, self.logger)
             self.logger.info(
                 f"Downloaded {tbd_url}, status <{resp.status}>, "
