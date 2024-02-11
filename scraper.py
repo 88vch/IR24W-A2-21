@@ -216,22 +216,25 @@ def isExactSimilarity(url, page_text: str):
     checksum_dict[checksum] = url
     return False
     
-def nearSimilarityDetection(tokens): #takes in the result of tokenize
+def nearSimilarityDetection(tokens, url): #takes in the result of tokenize
     #simhash
     token_dict = defaultdict(int) #words with weights
     for token in tokens:
-        token_dict[token] += 1    
+        token_dict[token] += 1
     token_dict2 = defaultdict(str)
+    print(token_dict)
     #8 bit hashing
     for token in token_dict.keys():
         hash_value = hashlib.md5(token.encode('utf-8')).digest()
-        token_dict2[token] = hash_value[0] #dict of hash_values
+        token_dict2[token] = format(hash_value[0], '08b')
+    #dict of hash_values
+    print(token_dict2.values())
     #get the vector V formed by summing weights
     fingerprint = ""
-    for token in token_dict.keys():
+    for i in range(len(str(list(token_dict2.values())[0]))):
         weight_sum = 0
-        for i in range(len(token_dict2[token])):
-            if (token_dict2[token][i]) == 1:
+        for token in token_dict.keys():
+            if (str(token_dict2[token])[i]) == '1':
                 weight_sum -= token_dict[token]
             else:
                 weight_sum += token_dict[token]
@@ -239,6 +242,7 @@ def nearSimilarityDetection(tokens): #takes in the result of tokenize
             fingerprint += "1"
         else:
             fingerprint += "0"
+    print(fingerprint)
     if fingerprint in simhash_dict:
         return True #there is a near duplicate
     simhash_dict[fingerprint] = url
