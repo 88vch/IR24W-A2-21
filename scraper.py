@@ -113,6 +113,17 @@ def extract_next_links(url, resp):
     if len(soup.get_text()) != 0:
         word_list = tokenize(soup.get_text())
 
+    # Checks that the current url is a subdomain of ics.uci.edu
+    # If it is, make an entry in the sub_domain_dict and add this current url
+    parsed = urlparse(url)
+    if ".ics.uci.edu" in parsed.hostname:
+        subdomain = parsed.hostname.split(".")[0]
+        fullsubdomain = "https://" + parsed.hostname
+        if fullsubdomain in sub_domain_dict:
+            sub_domain_dict[fullsubdomain] += 1
+        else:
+            sub_domain_dict[fullsubdomain] = 1
+
     if isNearSimilarity(word_list):
         similarCount += 1
         return retList #we don't use the url in the stats
@@ -132,16 +143,6 @@ def extract_next_links(url, resp):
             else:
                 running_dict[word] = 1
 
-    # Checks that the current url is a subdomain of ics.uci.edu
-    # If it is, make an entry in the sub_domain_dict with the number of links on the sub_domain
-    parsed = urlparse(url)
-    if ".ics.uci.edu" in parsed.hostname:
-        subdomain = parsed.hostname.split(".")[0]
-        fullsubdomain = "https://" + parsed.hostname
-        if fullsubdomain not in sub_domain_dict:
-            sub_domain_dict[fullsubdomain] = 1
-        else:
-            sub_domain_dict[fullsubdomain] = sub_domain_dict[fullsubdomain] + 1
     return retList
 
 
@@ -165,8 +166,8 @@ def is_valid(url):
             filtered_hostname = parsed.hostname.split('.', 1)[1]
         if filtered_hostname not in set(["ics.uci.edu", "cs.uci.edu", "informatics.uci.edu", "stat.uci.edu"]):
             return False
-        # if not robots_checkage(filtered_hostname, url): #checking robots.txt
-        #     return False
+        if not robots_checkage(filtered_hostname, url): #checking robots.txt
+            return False
         if parsed.query is not None:
             # Gets rid of "share=" urls, Gets rid of "action=" urls (ex. login, forgot password, etc..)
             if ("share=" in parsed.query) or ("action=" in parsed.query):
@@ -203,14 +204,17 @@ def is_valid(url):
 
 def robots_checkage(domain, url):
     #function that checks robots.txt at root
-    if domain in robot_permissions_dict:
-        return robot_permissions_dict[domain].can_fetch('*', url)
-    rp = robot.RobotFileParser()
-    robots_url = f'https://{domain}/robots.txt'
-    rp.set_url(robots_url)
-    rp.read()
-    robot_permissions_dict[domain] = rp
-    return robot_permissions_dict[domain].can_fetch('*', url) #returns true if robot allowed on the page, false otherwise
+    try:
+        if domain in robot_permissions_dict:
+            return robot_permissions_dict[domain].can_fetch('*', url)
+        rp = robot.RobotFileParser()
+        robots_url = f'https://{domain}/robots.txt'
+        rp.set_url(robots_url)
+        rp.read()
+        robot_permissions_dict[domain] = rp
+        return robot_permissions_dict[domain].can_fetch('*', url) #returns true if robot allowed on the page, false otherwise
+    except:
+        return False
 
 
 def isExactSimilarity(url, page_text: str):
