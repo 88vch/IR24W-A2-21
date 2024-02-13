@@ -111,8 +111,8 @@ def extract_next_links(url, resp):
     if len(soup.get_text()) != 0:
         word_list = tokenize(soup.get_text())
 
-    if isNearSimilarity(word_list):
-        return retList #we don't use the url in the stats
+    # if isNearSimilarity(word_list):
+    #     return retList #we don't use the url in the stats
 
     # Checks number of words on webpage
     # If number of words greater than max, update max
@@ -134,14 +134,13 @@ def extract_next_links(url, resp):
     if url.endswith('ics.uci.edu'):
         sub_domain_dict[url] = len(retList)
     parsed = urlparse(url)
-    if "www.ics.uci.edu" not in parsed:
-        if ".ics.uci.edu" in parsed.hostname:
-            subdomain = parsed.hostname.split(".")[0]
-            fullsubdomain = "https://" + parsed.hostname
-            if fullsubdomain not in sub_domain_dict:
-                sub_domain_dict[fullsubdomain] = 1
-            else:
-                sub_domain_dict[fullsubdomain] = sub_domain_dict[fullsubdomain] + 1
+    if ".ics.uci.edu" in parsed.hostname:
+        subdomain = parsed.hostname.split(".")[0]
+        fullsubdomain = "https://" + parsed.hostname
+        if fullsubdomain not in sub_domain_dict:
+            sub_domain_dict[fullsubdomain] = 1
+        else:
+            sub_domain_dict[fullsubdomain] = sub_domain_dict[fullsubdomain] + 1
     return retList
 
 

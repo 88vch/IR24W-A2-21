@@ -71,6 +71,7 @@ class Worker(Thread):
                 if Worker.max_word_count < scraper.max_word_count:
                     Worker.max_word_count = scraper.max_word_count
                     Worker.max_word_url = scraper.max_word_url
+                # print(scraper.sub_domain_dict)
                 Worker.sub_domain_dict.update(scraper.sub_domain_dict)
                 # temp = list(islice(sorted_running_dict, 50))
                 # print("\nHow many unique pages did you find: ", len(scraper.unique_list))
