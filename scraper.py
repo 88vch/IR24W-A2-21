@@ -29,7 +29,7 @@ sub_domain_dict = dict()
 nltk.download('stopwords')
 stopwords_set = stopwords.words('english')
 checksum_dict = dict()
-simhash_dict = dict()
+simhash_set = set()
 robot_permissions_dict = dict()
 # Modified to take in a webpage in the form of text/string
 def tokenize(page_text: str):
@@ -111,6 +111,9 @@ def extract_next_links(url, resp):
     if len(soup.get_text()) != 0:
         word_list = tokenize(soup.get_text())
 
+    if isNearSimilarity(word_list):
+        return retList #we don't use the url in the stats
+
     # Checks number of words on webpage
     # If number of words greater than max, update max
     if len(word_list) > max_word_count:
@@ -131,13 +134,14 @@ def extract_next_links(url, resp):
     if url.endswith('ics.uci.edu'):
         sub_domain_dict[url] = len(retList)
     parsed = urlparse(url)
-    if ".ics.uci.edu" in parsed.hostname:
-        subdomain = parsed.hostname.split(".")[0]
-        fullsubdomain = "https://" + parsed.hostname
-        if fullsubdomain not in sub_domain_dict:
-            sub_domain_dict[fullsubdomain] = 1
-        else:
-            sub_domain_dict[fullsubdomain] = sub_domain_dict[fullsubdomain] + 1
+    if "www.ics.uci.edu" not in parsed:
+        if ".ics.uci.edu" in parsed.hostname:
+            subdomain = parsed.hostname.split(".")[0]
+            fullsubdomain = "https://" + parsed.hostname
+            if fullsubdomain not in sub_domain_dict:
+                sub_domain_dict[fullsubdomain] = 1
+            else:
+                sub_domain_dict[fullsubdomain] = sub_domain_dict[fullsubdomain] + 1
     return retList
 
 
@@ -220,35 +224,37 @@ def isExactSimilarity(url, page_text: str):
     checksum_dict[checksum] = url
     return False
     
-def nearSimilarityDetection(tokens, url): #takes in the result of tokenize
-    #simhash
-    token_dict = defaultdict(int) #words with weights
+    
+def getFingerprint(tokens):
+    # Simhash fingerprint generation
+    token_dict = defaultdict(int)  # words with weights
     for token in tokens:
         token_dict[token] += 1
-    token_dict2 = defaultdict(str)
-    print(token_dict)
-    #8 bit hashing
-    for token in token_dict.keys():
-        hash_value = hashlib.md5(token.encode('utf-8')).digest()
-        token_dict2[token] = format(hash_value[0], '08b')
-    #dict of hash_values
-    print(token_dict2.values())
-    #get the vector V formed by summing weights
-    fingerprint = ""
-    for i in range(len(str(list(token_dict2.values())[0]))):
-        weight_sum = 0
-        for token in token_dict.keys():
-            if (str(token_dict2[token])[i]) == '1':
-                weight_sum -= token_dict[token]
-            else:
-                weight_sum += token_dict[token]
-        if weight_sum > 0:
-            fingerprint += "1"
-        else:
-            fingerprint += "0"
-    print(fingerprint)
-    if fingerprint in simhash_dict:
-        return True #there is a near duplicate
-    simhash_dict[fingerprint] = url
+    # Hash tokens using SHA-256
+    hash_values = [hashlib.sha256(token.encode('utf-8')).hexdigest() for token in token_dict]
+    # Convert hash values to binary representation
+    binary_hashes = [bin(int(hash_value, 16))[2:].zfill(256) for hash_value in hash_values]
+    # Initialize fingerprint as a list of zeros
+    fingerprint = ['0'] * 16  # Using 16 bits
+    # Combine token weights into the fingerprint
+    for i in range(len(binary_hashes)):
+        for j in range(min(16, len(binary_hashes[i]))):  # Ensure 16-bit length
+            if binary_hashes[i][j] == '1':
+                fingerprint[j] = '1'
+
+    return ''.join(fingerprint)
+
+
+
+def isNearSimilarity(tokens):
+    FINGER_THRESHOLD = 15
+    fingerprint = getFingerprint(tokens)
+    finger_similarity = 0
+    for finger in simhash_set:
+        for i in range(len(finger)):
+            if finger[i] == fingerprint[i]:
+                finger_similarity += 1
+            if finger_similarity >= FINGER_THRESHOLD:
+                return True
+    simhash_set.add(fingerprint)
     return False
-    

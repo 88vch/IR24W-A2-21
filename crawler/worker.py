@@ -13,6 +13,11 @@ class Worker(Thread):
     shared_dict = defaultdict(int)
     shared_lock = RLock()
     shared_semaphores = defaultdict(Semaphore)
+    running_dict = dict()
+    unique_list = list()
+    max_word_count = 0
+    max_word_url = ""
+    sub_domain_dict = dict()
     def __init__(self, worker_id, config, frontier):
         self.logger = get_logger(f"Worker-{worker_id}", "Worker")
         self.config = config
@@ -58,12 +63,19 @@ class Worker(Thread):
             time.sleep(self.config.time_delay)
             with Worker.shared_lock:
                 Worker.shared_dict[currentDomain] -= 1
-        sorted_running_dict = dict(sorted(scraper.running_dict.items(), key=lambda x: x[0], reverse=False))
-        sorted_running_dict = dict(sorted(sorted_running_dict.items(), key=lambda value: value[1], reverse=True))
-        temp = list(islice(sorted_running_dict, 50))
-        print("\nHow many unique pages did you find: ", len(scraper.unique_list))
-        print("\n50 most common words in the entire set of pages: ", temp)
-        print("\nLongest page in terms of the # of words:", scraper.max_word_url, "with", scraper.max_word_count, "words")
-        sorted_sub_domain_dict = dict(sorted(scraper.sub_domain_dict.items(), key=lambda x: x[0], reverse=False))
-        print("\nSubdomains found in the ics.uci.edu domain: ", sorted_sub_domain_dict)
-        
+            with Worker.shared_lock:
+                Worker.running_dict.update(scraper.running_dict)
+                # self.running_dict = dict(sorted(self.running_dict.items(), key=lambda x: x[0], reverse=False))
+                # self.running_dict = dict(sorted(self.running_dict.items(), key=lambda value: value[1], reverse=True))
+                Worker.unique_list.extend(scraper.unique_list)
+                if Worker.max_word_count < scraper.max_word_count:
+                    Worker.max_word_count = scraper.max_word_count
+                    Worker.max_word_url = scraper.max_word_url
+                Worker.sub_domain_dict.update(scraper.sub_domain_dict)
+                # temp = list(islice(sorted_running_dict, 50))
+                # print("\nHow many unique pages did you find: ", len(scraper.unique_list))
+                # print("\n50 most common words in the entire set of pages: ", temp)
+                # print("\nLongest page in terms of the # of words:", scraper.max_word_url, "with", scraper.max_word_count, "words")
+                # sorted_sub_domain_dict = dict(sorted(scraper.sub_domain_dict.items(), key=lambda x: x[0], reverse=False))
+                # print("\nSubdomains found in the ics.uci.edu domain: ", sorted_sub_domain_dict)
+                
