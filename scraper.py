@@ -30,6 +30,7 @@ nltk.download('stopwords')
 stopwords_set = stopwords.words('english')
 checksum_dict = dict()
 simhash_set = set()
+similarCount = 0
 robot_permissions_dict = dict()
 # Modified to take in a webpage in the form of text/string
 def tokenize(page_text: str):
@@ -77,6 +78,7 @@ def extract_next_links(url, resp):
     global sub_domain_dict
     global unique_list
     global max_word_url
+    global similarCount
 
     # Return if resp.status is 204 (No Content) or >= 400 (Bad Request)
     if resp.status == 204 or resp.status >= 400:
@@ -111,8 +113,9 @@ def extract_next_links(url, resp):
     if len(soup.get_text()) != 0:
         word_list = tokenize(soup.get_text())
 
-    # if isNearSimilarity(word_list):
-    #     return retList #we don't use the url in the stats
+    if isNearSimilarity(word_list):
+        similarCount += 1
+        return retList #we don't use the url in the stats
 
     # Checks number of words on webpage
     # If number of words greater than max, update max
@@ -131,8 +134,6 @@ def extract_next_links(url, resp):
 
     # Checks that the current url is a subdomain of ics.uci.edu
     # If it is, make an entry in the sub_domain_dict with the number of links on the sub_domain
-    if url.endswith('ics.uci.edu'):
-        sub_domain_dict[url] = len(retList)
     parsed = urlparse(url)
     if ".ics.uci.edu" in parsed.hostname:
         subdomain = parsed.hostname.split(".")[0]
@@ -164,8 +165,8 @@ def is_valid(url):
             filtered_hostname = parsed.hostname.split('.', 1)[1]
         if filtered_hostname not in set(["ics.uci.edu", "cs.uci.edu", "informatics.uci.edu", "stat.uci.edu"]):
             return False
-        if not robots_checkage(filtered_hostname, url): #checking robots.txt
-            return False
+        # if not robots_checkage(filtered_hostname, url): #checking robots.txt
+        #     return False
         if parsed.query is not None:
             # Gets rid of "share=" urls, Gets rid of "action=" urls (ex. login, forgot password, etc..)
             if ("share=" in parsed.query) or ("action=" in parsed.query):
@@ -225,21 +226,44 @@ def isExactSimilarity(url, page_text: str):
     
     
 def getFingerprint(tokens):
+    FINGERPRINT_SIZE = 16
     # Simhash fingerprint generation
     token_dict = defaultdict(int)  # words with weights
+    token_binH = defaultdict(str)
     for token in tokens:
         token_dict[token] += 1
+    for token in token_dict.keys():
+        # Hash tokens using SHA-256
+        hash_value = hashlib.sha256(token.encode('utf-8')).hexdigest() 
+        # Convert hash values to binary representation
+        binH = bin(int(hash_value, FINGERPRINT_SIZE))[2:].zfill(256)
+        token_binH[token] = binH
     # Hash tokens using SHA-256
-    hash_values = [hashlib.sha256(token.encode('utf-8')).hexdigest() for token in token_dict]
+    # hash_values = [hashlib.sha256(token.encode('utf-8')).hexdigest() for token in token_dict.keys()]
     # Convert hash values to binary representation
-    binary_hashes = [bin(int(hash_value, 16))[2:].zfill(256) for hash_value in hash_values]
+    # binary_hashes = [bin(int(hash_value, FINGERPRINT_SIZE))[2:].zfill(256) for hash_value in hash_values]
     # Initialize fingerprint as a list of zeros
-    fingerprint = ['0'] * 16  # Using 16 bits
+    fingerprint = ['0'] * FINGERPRINT_SIZE  # Using FINGERPRINT_SIZE bits
+    fingerprint_dict = {i: 0 for i in range(FINGERPRINT_SIZE)}
     # Combine token weights into the fingerprint
-    for i in range(len(binary_hashes)):
-        for j in range(min(16, len(binary_hashes[i]))):  # Ensure 16-bit length
-            if binary_hashes[i][j] == '1':
-                fingerprint[j] = '1'
+    # sus implementation
+    # for i in range(len(binary_hashes)):
+    #     for j in range(min(FINGERPRINT_SIZE, len(binary_hashes[i]))):  # Ensure 16-bit length
+    #         if binary_hashes[i][j] == '1':
+    #             fingerprint[j] = '1'
+    # revised z implementation
+    for i in range(FINGERPRINT_SIZE):
+        sign = 0
+        for token in token_dict.keys():
+            if token_binH[token][i] == '1':
+                sign = 1
+            elif token_binH[token][i] == '0':
+                sign = -1
+            # fingerprint[i] = str(int(fingerprint[i]) + (sign * token_dict[token]))
+            fingerprint_dict[i] += sign * token_dict[token]
+    
+    for i in range(FINGERPRINT_SIZE):
+        fingerprint[i] = '1' if fingerprint_dict[i] > 0 else '0'
 
     return ''.join(fingerprint)
 

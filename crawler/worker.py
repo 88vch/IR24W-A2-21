@@ -18,6 +18,7 @@ class Worker(Thread):
     max_word_count = 0
     max_word_url = ""
     sub_domain_dict = dict()
+    similarityCount = 0
     def __init__(self, worker_id, config, frontier):
         self.logger = get_logger(f"Worker-{worker_id}", "Worker")
         self.config = config
@@ -73,6 +74,8 @@ class Worker(Thread):
                     Worker.max_word_url = scraper.max_word_url
                 # print(scraper.sub_domain_dict)
                 Worker.sub_domain_dict.update(scraper.sub_domain_dict)
+                if Worker.similarityCount != scraper.similarCount:
+                    Worker.similarityCount += 1
                 # temp = list(islice(sorted_running_dict, 50))
                 # print("\nHow many unique pages did you find: ", len(scraper.unique_list))
                 # print("\n50 most common words in the entire set of pages: ", temp)

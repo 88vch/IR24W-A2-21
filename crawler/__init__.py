@@ -28,6 +28,7 @@ class Crawler(object):
         print("\nLongest page in terms of the # of words:", Worker.max_word_url, "with", Worker.max_word_count, "words")
         sorted_sub_domain_dict = dict(sorted(Worker.sub_domain_dict.items(), key=lambda x: x[0], reverse=False))
         print("\nSubdomains found in the ics.uci.edu domain: ", sorted_sub_domain_dict)
+        print("\nnumber of urls with near similarity: ", Worker.similarityCount) # test
     def join(self):
         for worker in self.workers:
             worker.join()
