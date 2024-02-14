@@ -170,8 +170,8 @@ def is_valid(url):
             filtered_hostname = parsed.hostname.split('.', 1)[1]
         if filtered_hostname not in set(["ics.uci.edu", "cs.uci.edu", "informatics.uci.edu", "stat.uci.edu"]):
             return False
-        if not robots_checkage(filtered_hostname, url): #checking robots.txt
-            return False
+       # if not robots_checkage(filtered_hostname, url): #checking robots.txt
+        #    return False
         if parsed.query is not None:
             # Gets rid of "share=" urls, Gets rid of "action=" urls (ex. login, forgot password, etc..)
             if ("share=" in parsed.query) or ("action=" in parsed.query):
@@ -206,19 +206,19 @@ def is_valid(url):
         raise
 
 
-def robots_checkage(domain, url):
+#def robots_checkage(domain, url):
     #function that checks robots.txt at root
-    try:
-        if domain in robot_permissions_dict:
-            return robot_permissions_dict[domain].can_fetch('*', url)
-        rp = robot.RobotFileParser()
-        robots_url = f'https://{domain}/robots.txt'
-        rp.set_url(robots_url)
-        rp.read()
-        robot_permissions_dict[domain] = rp
-        return robot_permissions_dict[domain].can_fetch('*', url) #returns true if robot allowed on the page, false otherwise
-    except:
-        return False
+ #   try:
+  #      if domain in robot_permissions_dict:
+   #         return robot_permissions_dict[domain].can_fetch('*', url)
+    #    rp = robot.RobotFileParser()
+     #   robots_url = f'https://{domain}/robots.txt'
+      #  rp.set_url(robots_url)
+       # rp.read()
+        #robot_permissions_dict[domain] = rp
+        #return robot_permissions_dict[domain].can_fetch('*', url) #returns true if robot allowed on the page, false otherwise
+    #except:
+        #return False
 
 
 def isExactSimilarity(url, page_text: str):
