@@ -32,6 +32,7 @@ checksum_dict = dict()
 simhash_set = set()
 similarCount = 0
 robot_permissions_dict = dict()
+FINGERPRINT_SIZE = 256
 # Modified to take in a webpage in the form of text/string
 def tokenize(page_text: str):
     """
@@ -90,6 +91,14 @@ def extract_next_links(url, resp):
     except:
         soup = BeautifulSoup(resp.raw_response.content, "utf-8")
     retList = []
+
+    # Tokenize content of current webpage
+    # All words stored in list, non-unique
+    # Will be repeating words in list
+    word_list = []
+    if len(soup.get_text()) != 0:
+        word_list = tokenize(soup.get_text())
+
     # Gets links from current webpage as listed in HTML
     links = soup.find_all('a')
     for link in links:
@@ -106,12 +115,11 @@ def extract_next_links(url, resp):
                 # if we have not encountered this page before we will add it to the unique list
                 if add_url not in unique_list:
                     unique_list.append(add_url)
-    # Tokenize content of current webpage
-    # All words stored in list, non-unique
-    # Will be repeating words in list
-    word_list = []
-    if len(soup.get_text()) != 0:
-        word_list = tokenize(soup.get_text())
+
+    if isNearSimilarity(word_list) or isExactSimilarity(url, soup.get_text()):
+        similarCount += 1
+        print(f'current url [{url}] is similar or exact to another, not adding to frontier...')
+        return retList # we don't use the url in the stats, but we get all its outgoing links
 
     # Checks that the current url is a subdomain of ics.uci.edu
     # If it is, make an entry in the sub_domain_dict and add this current url
@@ -123,10 +131,6 @@ def extract_next_links(url, resp):
             sub_domain_dict[fullsubdomain] += 1
         else:
             sub_domain_dict[fullsubdomain] = 1
-
-    if isNearSimilarity(word_list):
-        similarCount += 1
-        return retList #we don't use the url in the stats
 
     # Checks number of words on webpage
     # If number of words greater than max, update max
@@ -230,7 +234,7 @@ def isExactSimilarity(url, page_text: str):
     
     
 def getFingerprint(tokens):
-    FINGERPRINT_SIZE = 16
+    global FINGERPRINT_SIZE
     # Simhash fingerprint generation
     token_dict = defaultdict(int)  # words with weights
     token_binH = defaultdict(str)
@@ -239,23 +243,12 @@ def getFingerprint(tokens):
     for token in token_dict.keys():
         # Hash tokens using SHA-256
         hash_value = hashlib.sha256(token.encode('utf-8')).hexdigest() 
-        # Convert hash values to binary representation
-        binH = bin(int(hash_value, FINGERPRINT_SIZE))[2:].zfill(256)
+        # Convert hash values [hexadecimal] to binary representation
+        binH = bin(int(hash_value, 16))[2:][:FINGERPRINT_SIZE].zfill(256)
         token_binH[token] = binH
-    # Hash tokens using SHA-256
-    # hash_values = [hashlib.sha256(token.encode('utf-8')).hexdigest() for token in token_dict.keys()]
-    # Convert hash values to binary representation
-    # binary_hashes = [bin(int(hash_value, FINGERPRINT_SIZE))[2:].zfill(256) for hash_value in hash_values]
     # Initialize fingerprint as a list of zeros
     fingerprint = ['0'] * FINGERPRINT_SIZE  # Using FINGERPRINT_SIZE bits
     fingerprint_dict = {i: 0 for i in range(FINGERPRINT_SIZE)}
-    # Combine token weights into the fingerprint
-    # sus implementation
-    # for i in range(len(binary_hashes)):
-    #     for j in range(min(FINGERPRINT_SIZE, len(binary_hashes[i]))):  # Ensure 16-bit length
-    #         if binary_hashes[i][j] == '1':
-    #             fingerprint[j] = '1'
-    # revised z implementation
     for i in range(FINGERPRINT_SIZE):
         sign = 0
         for token in token_dict.keys():
@@ -274,14 +267,18 @@ def getFingerprint(tokens):
 
 
 def isNearSimilarity(tokens):
-    FINGER_THRESHOLD = 15
+    # a webpage is considered 'similar' if it's tokens have a ~95% match
+    global FINGERPRINT_SIZE
+    FINGER_THRESHOLD = int(FINGERPRINT_SIZE * 0.95) # 256 * 0.95 = 243.2 = 243
     fingerprint = getFingerprint(tokens)
-    finger_similarity = 0
     for finger in simhash_set:
+        # Reset finger similarity for each new fingerprint comparison
+        finger_similarity = 0
         for i in range(len(finger)):
             if finger[i] == fingerprint[i]:
                 finger_similarity += 1
             if finger_similarity >= FINGER_THRESHOLD:
                 return True
+    # if not a similar fingerprint, add it to our [simhash_set]
     simhash_set.add(fingerprint)
     return False

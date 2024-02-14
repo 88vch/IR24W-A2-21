@@ -27,6 +27,9 @@ class Worker(Thread):
         assert {getsource(scraper).find(req) for req in {"from requests import", "import requests"}} == {-1}, "Do not use requests in scraper.py"
         assert {getsource(scraper).find(req) for req in {"from urllib.request import", "import urllib.request"}} == {-1}, "Do not use urllib.request in scraper.py"
         super().__init__(daemon=True)
+        
+        # each worker gets its own similarityCount
+        # self.similarityCount = 0
     def getDomain(self, url):
         try:
             parsed = urlparse(url)
@@ -74,12 +77,12 @@ class Worker(Thread):
                     Worker.max_word_url = scraper.max_word_url
                 # print(scraper.sub_domain_dict)
                 Worker.sub_domain_dict.update(scraper.sub_domain_dict)
-                if Worker.similarityCount != scraper.similarCount:
-                    Worker.similarityCount += 1
+                # if Worker.similarityCount != scraper.similarCount:
+                #     Worker.similarityCount += 1
                 # temp = list(islice(sorted_running_dict, 50))
                 # print("\nHow many unique pages did you find: ", len(scraper.unique_list))
                 # print("\n50 most common words in the entire set of pages: ", temp)
                 # print("\nLongest page in terms of the # of words:", scraper.max_word_url, "with", scraper.max_word_count, "words")
                 # sorted_sub_domain_dict = dict(sorted(scraper.sub_domain_dict.items(), key=lambda x: x[0], reverse=False))
                 # print("\nSubdomains found in the ics.uci.edu domain: ", sorted_sub_domain_dict)
-                
+        similarityCount = scraper.similarCount
