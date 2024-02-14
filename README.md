@@ -1,9 +1,12 @@
 TEAM MEMBERS
 -------------------------
+* Susannah Liu @susannl5
+   * NetID: susannl5
+   * Student ID: 48294849
 * Danny Cowles @cowlesd
    * NetID: cowlesd
    * Student ID: 13015455
- 
+  
 ABOUT
 -------------------------
 This is the base implementation of a full crawler that uses a spacetime
