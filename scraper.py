@@ -31,7 +31,7 @@ stopwords_set = stopwords.words('english')
 checksum_dict = dict()
 simhash_set = set()
 similarCount = 0
-robot_permissions_dict = dict()
+
 FINGERPRINT_SIZE = 256
 # Modified to take in a webpage in the form of text/string
 def tokenize(page_text: str):
@@ -58,11 +58,11 @@ def tokenize(page_text: str):
         token_list.append(new_word)
     return token_list
 
-def scraper(url, resp):
-    links = extract_next_links(url, resp)
-    return [link for link in links if is_valid(link)]
+def scraper(url, resp, robot_permissions_dict):
+    links = extract_next_links(url, resp, robot_permissions_dict)
+    return [link for link in links if is_valid(link, robot_permissions_dict)]
 
-def extract_next_links(url, resp):
+def extract_next_links(url, resp, robot_permissions_dict):
     # Implementation required.
     # url: the URL that was used to get the page
     # resp.url: the actual url of the page
@@ -110,7 +110,7 @@ def extract_next_links(url, resp):
             # Defragments the url
             split_link = link.split('#')
             add_url = split_link[0]
-            if is_valid(add_url):
+            if is_valid(add_url, robot_permissions_dict):
                 retList.append(add_url)
                 # if we have not encountered this page before we will add it to the unique list
                 if add_url not in unique_list:
@@ -150,7 +150,7 @@ def extract_next_links(url, resp):
     return retList
 
 
-def is_valid(url):
+def is_valid(url, robot_permissions_dict):
     # Decide whether to crawl this url or not. 
     # If you decide to crawl it, return True; otherwise return False.
     # There are already some conditions that return False.
@@ -170,8 +170,8 @@ def is_valid(url):
             filtered_hostname = parsed.hostname.split('.', 1)[1]
         if filtered_hostname not in set(["ics.uci.edu", "cs.uci.edu", "informatics.uci.edu", "stat.uci.edu"]):
             return False
-       # if not robots_checkage(filtered_hostname, url): #checking robots.txt
-        #    return False
+        if robot_permissions_dict[filtered_hostname].can_fetch('*', url) == False:
+            return False
         if parsed.query is not None:
             # Gets rid of "share=" urls, Gets rid of "action=" urls (ex. login, forgot password, etc..)
             if ("share=" in parsed.query) or ("action=" in parsed.query):
@@ -204,21 +204,6 @@ def is_valid(url):
         # if parsed is not None:
         print("TypeError for ", parsed)
         raise
-
-
-#def robots_checkage(domain, url):
-    #function that checks robots.txt at root
- #   try:
-  #      if domain in robot_permissions_dict:
-   #         return robot_permissions_dict[domain].can_fetch('*', url)
-    #    rp = robot.RobotFileParser()
-     #   robots_url = f'https://{domain}/robots.txt'
-      #  rp.set_url(robots_url)
-       # rp.read()
-        #robot_permissions_dict[domain] = rp
-        #return robot_permissions_dict[domain].can_fetch('*', url) #returns true if robot allowed on the page, false otherwise
-    #except:
-        #return False
 
 
 def isExactSimilarity(url, page_text: str):
