@@ -1,3 +1,9 @@
+TEAM MEMBERS
+-------------------------
+* Danny Cowles @cowlesd
+   * NetID: cowlesd
+   * Student ID: 13015455
+ 
 ABOUT
 -------------------------
 This is the base implementation of a full crawler that uses a spacetime
