@@ -118,7 +118,7 @@ def extract_next_links(url, resp, robot_permissions_dict):
 
     if isNearSimilarity(word_list) or isExactSimilarity(url, soup.get_text()):
         similarCount += 1
-        print(f'current url [{url}] is similar or exact to another, not adding to frontier...')
+        # print(f'current url [{url}] is similar or exact to another, not adding to frontier...')
         return retList # we don't use the url in the stats, but we get all its outgoing links
 
     # Checks that the current url is a subdomain of ics.uci.edu

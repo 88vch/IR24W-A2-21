@@ -62,8 +62,11 @@ class Worker(Thread):
             self.logger.info(
                 f"Downloaded {tbd_url}, status <{resp.status}>, "
                 f"using cache {self.config.cache_server}.")
-            robot_permissions_dict = self.robots_checkage_creation(resp)
-            scraped_urls = scraper.scraper(tbd_url, resp, robot_permissions_dict)
+            try:
+                robot_permissions_dict = self.robots_checkage_creation(resp)
+                scraped_urls = scraper.scraper(tbd_url, resp, robot_permissions_dict)
+            except:
+                pass
             for scraped_url in scraped_urls:
                 self.frontier.add_url(scraped_url)
             self.frontier.mark_url_complete(tbd_url)
@@ -93,7 +96,7 @@ class Worker(Thread):
         #function that checks robots.txt at root
         robot_permissions_dict = dict()
         if resp.status == 204 or resp.status >= 400:
-            return
+            return robot_permissions_dict
         robots_urls = []
         for domain in ["ics.uci.edu", "cs.uci.edu", "informatics.uci.edu", "stat.uci.edu"]:
             robots_urls.append((domain, f'https://{domain}/robots.txt'))
