@@ -116,6 +116,12 @@ def extract_next_links(url, resp, robot_permissions_dict):
                 if add_url not in unique_list:
                     unique_list.append(add_url)
 
+                # Checks number of words on webpage
+                # If number of words greater than max, update max
+                if len(word_list) > max_word_count:
+                    max_word_count = len(word_list)
+                    max_word_url = url
+
     if isNearSimilarity(word_list) or isExactSimilarity(url, soup.get_text()):
         similarCount += 1
         # print(f'current url [{url}] is similar or exact to another, not adding to frontier...')
@@ -131,12 +137,6 @@ def extract_next_links(url, resp, robot_permissions_dict):
             sub_domain_dict[fullsubdomain] += 1
         else:
             sub_domain_dict[fullsubdomain] = 1
-
-    # Checks number of words on webpage
-    # If number of words greater than max, update max
-    if len(word_list) > max_word_count:
-        max_word_count = len(word_list)
-        max_word_url = url
 
     # Checks each word in word_list
     # Updates running_dict
