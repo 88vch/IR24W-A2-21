@@ -6,6 +6,9 @@ TEAM MEMBERS
 * Danny Cowles @cowlesd
    * NetID: cowlesd
    * Student ID: 13015455
+* Zachary Qin @zacharyq
+   * NetID: zacharyq
+   * Student ID: 19291733
   
 ABOUT
 -------------------------
