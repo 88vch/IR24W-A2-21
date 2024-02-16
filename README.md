@@ -9,6 +9,9 @@ TEAM MEMBERS
 * Zachary Qin @zacharyq
    * NetID: zacharyq
    * Student ID: 19291733
+* Jalen Fu @jalenf
+   * NetID: jalenf
+   * Student ID: 44898079
   
 ABOUT
 -------------------------
