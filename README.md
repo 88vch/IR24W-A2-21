@@ -26,6 +26,12 @@ We have implemented both a simhash to check for near duplicates and a checksum a
 
 We also implemented multithreading with the politeness set to 500 ms with 4 threads and only up to two threads can access the same domain every 500 ms. To implement the politeness we have a shared dictionary keeping track of which thread is accessing which domain which is locked whenever accessed to prevent race conditions and make sure it is async-safe and thread-safe and if a third thread is attempting to access the domain, we set it to sleep for 500 ms.
 
+
+Crawler Requirements:
+
+The base code provided to us honors the politness delay for each site. Our implementation of our is_valid function allows us to crawl all pages with high textual information content along with detecting and avoiding infinite traps. Our crawler does not get stuck in any infinite traps with our implementation. One of the methods we use to avoid sets of similar pages with no information is by avoid pages past a certain set number. One of the issues we saw is that our crawler would retrieve pages from a certain site that went up to 200-300 pages long. These pages were very similar and didn't provide us much useful information so we avoid. In the extract_next_links function we examine the response code from the webpage download and if it is 204 (No Content) or anything larger than 400 we will not crawl it. This ensures that we are crawling webpages successfully based on status codes. In terms of avoiding large files we avoid specific file extensions that are not webpages in our is_valid function to ensure our crawler runs efficiently. One example of a large file we ran into were Powerpoint presentations so we had to avoid the extensions related to them, also since they are not webpages.
+
+
 CONFIGURATION
 -------------------------
 
