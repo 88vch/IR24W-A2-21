@@ -17,6 +17,10 @@ ABOUT
 -------------------------
 This is the base implementation of a full crawler that uses a spacetime
 cache server to receive requests.
+Extra credit:
+We check the html body of the robots.txt at every domain by downloading the text and then we use RobotFileParser and cache the results so that when accessing a url, we can check the domain and see if we are allowed to crawl that url.
+We have implemented both a simhash to check for near duplicates and a checksum algorithm to check for similarities. If the current page is similar to a previously crawled page, we choose not to crawl it or include its stats in our report.
+We also implemented multithreading with the politeness set to 500 ms with 4 threads and only up to two threads can access the same domain every 500 ms. To implement the politeness we have a shared dictionary keeping track of which thread is accessing which domain which is locked whenever accessed to prevent race conditions and make sure it is async-safe and thread-safe and if a third thread is attempting to access the domain, we set it to sleep for 500 ms.
 
 CONFIGURATION
 -------------------------
